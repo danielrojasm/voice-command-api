@@ -1,6 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, status
+from pydantic import ValidationError
 
 from src.app.schemas.voice import Task, TaskCreate, TaskReplace, TaskUpdate
 
@@ -52,6 +53,16 @@ def delete_task(task_id: int) -> dict[str, str]:
 
 def execute_task_instruction(endpoint: str, method: str, params: dict[str, Any]) -> Any:
     """Execute a validated task route returned by the instruction model."""
+    try:
+        return _execute_task_instruction(endpoint, method, params)
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Invalid params for {method} {endpoint}: {exc.errors(include_url=False)}",
+        ) from exc
+
+
+def _execute_task_instruction(endpoint: str, method: str, params: dict[str, Any]) -> Any:
     method = method.upper()
     if endpoint == "/tasks" and method == "GET":
         return get_tasks()
