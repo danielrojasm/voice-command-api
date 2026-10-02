@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TaskCreate(BaseModel):
@@ -29,9 +29,11 @@ class InstructionRequest(BaseModel):
 
 
 class InstructionPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     endpoint: str = Field(..., min_length=1)
     method: str = Field(..., min_length=1)
-    params: dict[str, Any] = Field(default_factory=dict)
+    params: dict[str, Any]
 
 
 class TranscribeFlowResponse(BaseModel):
